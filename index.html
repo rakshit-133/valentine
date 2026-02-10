@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Rishika Chhabra</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@300;900&display=swap');
+
+        :root {
+            --bg-color: #000000;
+            --text-color: #ffffff;
+            --accent: #ffb703;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* Panic Animations */
+        .panic-shake {
+            animation: shake 0.1s infinite;
+        }
+        @keyframes shake {
+            0% { transform: translate(2px, 2px) rotate(0deg); }
+            25% { transform: translate(-2px, -3px) rotate(-1deg); }
+            50% { transform: translate(-4px, 0px) rotate(1deg); }
+            75% { transform: translate(4px, 3px) rotate(0deg); }
+            100% { transform: translate(2px, -2px) rotate(-1deg); }
+        }
+
+        /* Button Dynamics */
+        #yes-btn {
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        background-color 0.5s ease, 
+                        color 0.5s ease, 
+                        box-shadow 0.5s ease,
+                        top 0.5s ease,
+                        left 0.5s ease;
+            z-index: 100;
+        }
+        #no-btn {
+            transition: all 0.2s ease-out, opacity 0.5s ease;
+            z-index: 50;
+        }
+
+        /* Dialogue Box Styling */
+        #dialogue-bubble {
+            position: absolute;
+            bottom: 140%;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            white-space: nowrap;
+            pointer-events: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            z-index: 110;
+            box-shadow: 0 10px 25px rgba(255, 183, 3, 0.3);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #dialogue-bubble.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.7);
+        }
+
+        .floating-asset {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10;
+            animation: floatUp 6s linear forwards;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(110vh) scale(0.5) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-20vh) scale(1.5) rotate(360deg); opacity: 0; }
+        }
+
+        .screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .hidden { display: none !important; }
+
+        .main-question {
+            font-family: 'Playfair Display', serif;
+            letter-spacing: -0.02em;
+        }
+
+        .celebration-text {
+            line-height: 1.2;
+            animation: fadeInScale 1.5s ease-out;
+            z-index: 20;
+        }
+
+        @keyframes fadeInScale {
+            0% { opacity: 0; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="h-screen w-screen m-0 p-0">
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="screen">
+        <h1 class="text-3xl md:text-4xl mb-12 tracking-[0.2em] font-light text-gray-200">What is your name?</h1>
+        <div class="w-full max-w-sm space-y-10">
+            <div class="relative">
+                <input type="text" id="name-input" 
+                    class="w-full bg-transparent border-b border-gray-800 p-4 text-center text-3xl outline-none focus:border-yellow-500 transition-all uppercase tracking-widest font-light" 
+                    placeholder="ENTER NAME" autocomplete="off">
+            </div>
+            <button onclick="checkIdentity()" 
+                class="w-full bg-white text-black py-5 hover:bg-yellow-500 hover:text-white transition-all font-bold tracking-[0.3em] uppercase text-sm rounded-full">
+                Verify Identity
+            </button>
+        </div>
+        <p id="panic-msg" class="mt-16 text-red-500 font-bold uppercase text-xs tracking-widest h-12 px-8 leading-relaxed"></p>
+    </div>
+
+    <!-- MAIN APP SCREEN -->
+    <div id="main-screen" class="screen hidden">
+        <div id="content-container" class="p-10 md:p-20 transition-all duration-1000 w-full max-w-6xl">
+            <h1 id="main-heading" class="text-3xl md:text-6xl mb-6 main-question font-bold text-white">
+                Rishika, will you be my valentine?
+            </h1>
+            <p id="sub-heading" class="text-lg opacity-40 mb-20 italic font-light tracking-widest">
+                I've been waiting a long time to ask you this.
+            </p>
+            
+            <div id="interaction-zone" class="relative h-64 flex items-center justify-center gap-16">
+                <div class="relative">
+                    <div id="dialogue-bubble" class="bg-white text-black text-xs font-bold shadow-2xl">
+                        Please don't...
+                    </div>
+                    <button id="yes-btn" onclick="nextStage()"
+                        class="bg-white text-black px-16 py-6 font-black text-2xl rounded-full uppercase tracking-widest shadow-2xl">
+                        YES
+                    </button>
+                </div>
+                <button id="no-btn"
+                    class="bg-transparent border border-white/20 text-white/40 px-14 py-6 font-bold text-xl rounded-full">
+                    NO
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let stage = 1;
+        let lastDialogueUpdate = 0;
+        let persistentScale = 1;
+        let isNear = false;
+        const DIALOGUE_COOLDOWN = 2200; 
+        
+        const body = document.body;
+        const loginScreen = document.getElementById('login-screen');
+        const mainScreen = document.getElementById('main-screen');
+        const nameInput = document.getElementById('name-input');
+        const panicMsg = document.getElementById('panic-msg');
+        const mainHeading = document.getElementById('main-heading');
+        const subHeading = document.getElementById('sub-heading');
+        const yesBtn = document.getElementById('yes-btn');
+        const noBtn = document.getElementById('no-btn');
+        const bubble = document.getElementById('dialogue-bubble');
+        const contentContainer = document.getElementById('content-container');
+
+        const sadMessages = [
+            "Please don't do this...",
+            "Don't you love me?",
+            "Am I not enough?",
+            "Don't go near that button!",
+            "My heart is breaking...",
+            "Rishika, please stay..."
+        ];
+
+        const angryMessages = [
+            "GET BACK HERE!",
+            "STOP THAT!",
+            "CLICK YES!",
+            "DON'T YOU DARE!",
+            "MY PATIENCE IS GONE!",
+            "CHOOSE ME NOW!"
+        ];
+
+        function checkIdentity() {
+            const val = nameInput.value.toLowerCase().trim();
+            if (val === "rishika" || val === "rishika chhabra") {
+                loginScreen.classList.add('opacity-0');
+                setTimeout(() => {
+                    loginScreen.classList.add('hidden');
+                    mainScreen.classList.remove('hidden');
+                }, 800);
+            } else {
+                triggerPanicMode();
+            }
+        }
+
+        function triggerPanicMode() {
+            const alerts = ["IDENTIFICATION FAILED.", "YOU ARE NOT AUTHORIZED.", "UNAUTHORIZED ACCESS DETECTED."];
+            panicMsg.innerText = alerts[Math.floor(Math.random() * alerts.length)];
+            body.classList.add('panic-shake');
+            body.style.backgroundColor = "#2a0000";
+            setTimeout(() => {
+                body.classList.remove('panic-shake');
+                body.style.backgroundColor = "#000";
+            }, 300);
+            nameInput.value = "";
+        }
+
+        function updateDialogue(messages, forceRed = false) {
+            const now = Date.now();
+            if (now - lastDialogueUpdate > DIALOGUE_COOLDOWN) {
+                bubble.innerText = messages[Math.floor(Math.random() * messages.length)];
+                lastDialogueUpdate = now;
+                if (forceRed) {
+                    bubble.style.backgroundColor = "#ffb703";
+                    bubble.style.color = "black";
+                } else {
+                    bubble.style.backgroundColor = "white";
+                    bubble.style.color = "black";
+                }
+            }
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            if (mainScreen.classList.contains('hidden') || stage >= 6) return;
+
+            const noRect = noBtn.getBoundingClientRect();
+            const noCenterX = noRect.left + noRect.width / 2;
+            const noCenterY = noRect.top + noRect.height / 2;
+            const dist = Math.sqrt(Math.pow(e.clientX - noCenterX, 2) + Math.pow(e.clientY - noCenterY, 2));
+            
+            if (dist < 350) {
+                bubble.classList.add('visible');
+                
+                if (!isNear) {
+                    isNear = true;
+                    // Proximity-based growth logic for Stage 4 - No shrinking
+                    if (stage === 4) {
+                        persistentScale *= 1.25; 
+                        yesBtn.style.transform = `scale(${persistentScale})`;
+                    }
+                }
+
+                if (stage < 4) {
+                    updateDialogue(sadMessages, false);
+                } else {
+                    const intensity = (350 - dist) / 350;
+                    const yellowVal = Math.floor(intensity * 255);
+                    
+                    yesBtn.style.backgroundColor = `rgb(255, ${Math.max(183, yellowVal)}, 3)`;
+                    yesBtn.style.color = 'black';
+                    
+                    updateDialogue(angryMessages, true);
+                    if (intensity > 0.8) yesBtn.classList.add('panic-shake');
+                    else yesBtn.classList.remove('panic-shake');
+                }
+            } else {
+                bubble.classList.remove('visible');
+                isNear = false;
+                yesBtn.classList.remove('panic-shake');
+            }
+        });
+
+        noBtn.addEventListener('mouseover', () => {
+            if (stage === 5 || stage >= 6) return;
+            
+            const padding = 150;
+            const x = Math.random() * (window.innerWidth - noBtn.offsetWidth - padding) + padding/2;
+            const y = Math.random() * (window.innerHeight - noBtn.offsetHeight - padding) + padding/2;
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = `${x}px`;
+            noBtn.style.top = `${y}px`;
+        });
+
+        function nextStage() {
+            if (stage >= 6) return;
+            stage++;
+            
+            // RESET BUTTON POSITIONS AT START OF EVERY STAGE
+            noBtn.style.position = 'static';
+            noBtn.style.left = 'auto';
+            noBtn.style.top = 'auto';
+            noBtn.style.opacity = '1';
+            noBtn.style.display = 'block';
+
+            yesBtn.classList.remove('panic-shake');
+            bubble.classList.remove('visible');
+            lastDialogueUpdate = 0;
+
+            if (stage === 2) {
+                yesBtn.style.transform = 'scale(1)';
+                body.style.backgroundColor = "#120000";
+                subHeading.innerText = "Why would you even consider clicking that button?";
+            } 
+            else if (stage === 3) {
+                yesBtn.style.transform = 'scale(1)';
+                body.style.backgroundColor = "#2a1b00";
+                subHeading.innerText = "I'm starting to think you're doing this on purpose...";
+            }
+            else if (stage === 4) {
+                yesBtn.style.transform = 'scale(1)';
+                body.style.background = "linear-gradient(135deg, #1a0b2e, #2e1a0b)";
+                subHeading.innerText = "Okay, the games are over. Choose properly.";
+                contentContainer.classList.add('glass');
+            }
+            else if (stage === 5) {
+                yesBtn.style.transform = `scale(1.5)`; 
+                body.style.background = "#000000";
+                subHeading.innerText = "The option to refuse is expiring. 3 seconds remaining.";
+                
+                setTimeout(() => {
+                    if (stage === 5) {
+                        noBtn.style.opacity = '0';
+                        setTimeout(() => noBtn.style.display = 'none', 500);
+                        subHeading.innerText = "There is no other way. Please say yes.";
+                    }
+                }, 3000);
+            }
+            else if (stage === 6) {
+                // Final stage background change to Elegant Wine Red Velvet
+                body.style.background = "radial-gradient(circle, #5e0b15 0%, #000000 100%)";
+                body.style.color = "#ffffff";
+                
+                contentContainer.innerHTML = `
+                    <div class="celebration-text flex flex-col items-center">
+                        <h1 class="text-4xl md:text-7xl handwritten mb-10 text-white font-bold drop-shadow-lg">
+                            THANKS MY LOVE
+                        </h1>
+                        <div class="space-y-6 opacity-90 font-bold tracking-widest text-white">
+                            <p class="text-xl md:text-3xl uppercase drop-shadow-md">
+                                I KNEW YOU LOVE ME.
+                            </p>
+                            <p class="text-lg md:text-2xl uppercase border-y border-white/30 py-4 drop-shadow-md">
+                                TRUSTED YOU FROM THE VERY START
+                            </p>
+                        </div>
+                        <p class="text-2xl md:text-4xl handwritten mt-12 font-black text-white drop-shadow-lg">
+                            THANKS FOR BEING MY VALENTINE RISHIKA ❤️
+                        </p>
+                        <div class="mt-12 text-6xl animate-bounce">🌻</div>
+                    </div>
+                `;
+                
+                noBtn.style.display = "none";
+                yesBtn.style.display = "none";
+                startFinalAnimations();
+            }
+        }
+
+        function startFinalAnimations() {
+            // High frequency spawning for a "Full Screen" effect
+            setInterval(() => {
+                const item = document.createElement('div');
+                item.className = "floating-asset";
+                // Assets: teddy bear, chocolates, bouquets, sunflowers and red hearts
+                const assets = ["❤️", "🧸", "🍫", "💐", "🌻", "💖", "🌷", "🌹"];
+                item.innerHTML = assets[Math.floor(Math.random() * assets.length)];
+                
+                // Spawn across the entire screen width
+                item.style.left = Math.random() * 100 + "vw";
+                
+                // Distribute spawn heights for "Full Screen" coverage
+                const startPos = Math.random() * 110 + 10; 
+                item.style.top = startPos + "vh";
+                
+                item.style.fontSize = (Math.random() * 40 + 30) + "px";
+                item.style.animationDuration = (Math.random() * 3 + 4) + "s";
+                body.appendChild(item);
+                
+                setTimeout(() => item.remove(), 7000);
+            }, 60); 
+        }
+
+        nameInput.addEventListener("keypress", (e) => { if (e.key === "Enter") checkIdentity(); });
+    </script>
+</body>
+</html>
